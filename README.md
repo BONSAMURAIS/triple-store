@@ -3,7 +3,7 @@ This repository contains the documentation and code for the Bonsai project backe
 The goal is to establish a maintainable and expandable core triplestore, filled with preliminary data showing application examples of the core Bonsai data.
 
 
-# About Jena
+# About Bonsai's use of Apache Jena
 Apache Jena [is a framework](https://jena.apache.org/getting_started/index.html). It uses the TDB storage engine by default, which is [available in version 1 or 2](https://jena.apache.org/documentation/tdb/index.html). As performance is not a hackathon-deliverable, the standard/stable version 1 is selected for the initial prototype.
 
 
