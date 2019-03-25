@@ -4,17 +4,17 @@ The goal is to establish a maintainable and expandable core triplestore, filled 
 
 
 # About Jena
-Apache Jena [is a framework](https://jena.apache.org/getting_started/index.html). It uses the TDB storage engine by default. 
+Apache Jena [is a framework](https://jena.apache.org/getting_started/index.html). It uses the TDB storage engine by default, which is [available in version 1 or 2](https://jena.apache.org/documentation/tdb/index.html). As performance is not a hackathon-deliverable, the standard/stable version 1 is selected for the initial prototype.
 
 
 # How users can get started
-See the Issues
+See [the repo Issues](https://github.com/BONSAMURAIS/triple-store/issues)
 
 # Where users can get help with your project
 [The triple-store channel](https://bonsai-open.slack.com/messages/CH9MHJL2K) within the Bonsai Slack Workspace 
 
 # Who maintains and contributes to the project
-Tom Millross is co-ordinating work on this through the hackathon
+Tom Millross is co-ordinating work on this for the hackathon
 
 ****
 # Background information
