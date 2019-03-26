@@ -8,7 +8,7 @@ Apache Jena [is a framework](https://jena.apache.org/getting_started/index.html)
 
 Our [Fuzeki SPARQL server](https://jena.apache.org/documentation/fuseki2/) is available now at https://db.bonsai.uno/ (credentials needed - ask Tom for now).
 
-There is also the Aalborg University-hosted instance at https://odas.aau.dk/fuseki/. After the hackathon, it may make more sense to use this, to reduce management and financial requirements.
+There is also the Aalborg University-hosted instance at https://odas.aau.dk/fuseki/. After the hackathon, we will use this, to reduce management and financial requirements on the Bonsai contributors (Thanks Aalborg IT team!)
 
 # How users can get started
 See [the repo Issues](https://github.com/BONSAMURAIS/triple-store/issues)
@@ -18,6 +18,18 @@ See [the repo Issues](https://github.com/BONSAMURAIS/triple-store/issues)
 
 # Who maintains and contributes to the project
 Tom Millross is co-ordinating work on this for the hackathon
+
+# Setting up your own Jena db instance on a server
+Bonsai (with guidance from @tngTUDOR) chose the following architecture during the hackathon: 
+
+setup a nginx as a proxy in the front in a virtual private server from digitalocean
+run Jena db inside a docker container, as an upstream for the proxy.
+We used the docker image from: https://hub.docker.com/r/stain/jena-fuseki/ with the default configuration
+
+> docker run -p 3030:3030 --name jena-fuseki stain/jena-fuseki 
+
+Access this through localhost:3030 if on your server. We configured nginx to forward requests on db.bonsai.uno to our docker container.
+
 
 ****
 # Background information
