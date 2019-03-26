@@ -1,0 +1,7 @@
+Select ?x where {
+?x a b:flow;
+   b:flowOf ?z;
+   b:hasTemporalExtent ?y.
+?z a b:flow-object.
+?y b:hasBeginning ?low;
+   b:hasEnd ?up}

@@ -1,0 +1,5 @@
+Select ?loc where {
+?a b:performs ?y;
+   a agent;
+   b:location ?loc.
+?y a activity }

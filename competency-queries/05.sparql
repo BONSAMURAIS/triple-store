@@ -1,0 +1,8 @@
+Select ?a where {
+z a b:agent;
+  b:performs ?w;
+  b:location ?l.
+?y b:performs ?w;
+   b:location ?l.
+Minus { z }
+}
