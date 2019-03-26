@@ -17,7 +17,7 @@ See [the repo Issues](https://github.com/BONSAMURAIS/triple-store/issues)
 [The triple-store channel](https://bonsai-open.slack.com/messages/CH9MHJL2K) within the Bonsai Slack Workspace 
 
 # Who maintains and contributes to the project
-Tom Millross is co-ordinating work on this for the hackathon
+Tom Millross is co-ordinating work on this for the hackathon. Tomas Navarrete has contributed his DevOps skillz. Brandon Kuczenski is prompting us to ensure the work we create is reproducible. Miguel Remolona is engaging with discussions and developing SPARQL queries.
 
 # Setting up your own Jena db instance on a server
 Bonsai (with guidance from @tngTUDOR) chose the following architecture during the hackathon: 
