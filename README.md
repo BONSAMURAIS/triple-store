@@ -28,11 +28,11 @@ We used the docker image from: https://hub.docker.com/r/stain/jena-fuseki/ with 
 
 > docker run -p 3030:3030 --name jena-fuseki stain/jena-fuseki 
 
-Access this through localhost:3030 if on your server. We configured nginx to forward requests on db.bonsai.uno to our docker container.
-
+Access this through localhost:3030 if on your server. We configured nginx to forward requests on db.bonsai.uno to our docker container. The nginx configuration file extract is available in the [config subfolder](https://github.com/BONSAMURAIS/triple-store/blob/master/config/db.conf).
 
 ****
 # Background information
+_extracted from Wiki_
 To apply e.g. contribution analysis on the calculated footprints, not only raw data need to be stored, but also the linked data (the Direct Requirements Matrices) needs to be stored. In addition to the RDF stores, other database formats can be used when speed of search and calculation makes this desirable.
 
 In the longer run, it may be considered to place the triple-store on IPFS. IPFS was developed out of http://dat-data.com - where the second focuses specifically on scientific data (see IPLD and https://github.com/ipfs/faq/issues/119 and the discussion near the end of https://github.com/ipfs/ipfs/issues/36 ). A parallel that focus more on social media data is SOLID.
