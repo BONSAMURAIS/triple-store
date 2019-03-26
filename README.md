@@ -6,7 +6,9 @@ The goal is to establish a maintainable and expandable core triplestore, filled 
 # About Bonsai's use of Apache Jena
 Apache Jena [is a framework](https://jena.apache.org/getting_started/index.html). It uses the TDB storage engine by default, which is [available in version 1 or 2](https://jena.apache.org/documentation/tdb/index.html). As performance is not a hackathon-deliverable, the standard/stable version 1 is selected for the initial prototype.
 
-Our [Fuzeki SPARQL server](https://jena.apache.org/documentation/fuseki2/) is available now at https://db.bonsai.uno/ (credentials needed - ask Tom for now)
+Our [Fuzeki SPARQL server](https://jena.apache.org/documentation/fuseki2/) is available now at https://db.bonsai.uno/ (credentials needed - ask Tom for now).
+
+There is also the Aalborg University-hosted instance at https://odas.aau.dk/fuseki/. After the hackathon, it may make more sense to use this, to reduce management and financial requirements.
 
 # How users can get started
 See [the repo Issues](https://github.com/BONSAMURAIS/triple-store/issues)
