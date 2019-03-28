@@ -1,8 +1,7 @@
 # Competency questions
-_The SPARQL queries associated with these questions are visible in the /queries folder, with matching numbers.
+The SPARQL queries associated with these questions are visible in the [queries](/competency-queries) folder, with matching numbers.
 These should become part of a testing suite.
-If a number is missing from the folder, the query is not yet written
-_
+If a number is missing from the files in this folder, the query is not yet written. Writing the remainder of these queries (or writing new questions below) is a helpful contribution to the project!
 
 ## 01
 Is the flow $x$ a determining product for the activity $y$
