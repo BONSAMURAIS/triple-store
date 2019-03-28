@@ -1,3 +1,6 @@
+# 04
+# What is the location of the agent performing the activity $y$?
+
 Select ?loc where {
 ?a b:performs ?y;
    a agent;

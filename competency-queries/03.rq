@@ -1,3 +1,6 @@
+# 03
+# What is the amount of flow $x$ emitted as output during the time period $y$ ?
+
 Select ?x where {
 ?x a b:flow;
    b:flowOf ?z;

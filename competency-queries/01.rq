@@ -1,3 +1,6 @@
+# 01
+# Is the flow $x$ a determining product for the activity $y$	
+
 Select count(?x)>1 where {
 ?x b:isOutputOf ?y;
   a b:flow-object.
