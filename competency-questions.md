@@ -23,7 +23,7 @@ SELECT ?z WHERE {
     # x here should be translated to the flow from above, though I think in terms
     # of questions, x would be a flow object, so it's referenced as one here.
         ?xFlow b:outputOf ?yActivity; 
-               b:determiningFlow ?yActivity; 
+               ^b:determiningFlow ?yActivity; #made a mistake in domain and ranges so put an inverse ^ here.
                b:objectType ?xObject;
                
     #last two lines are for the labels which are presumed to used in the question
@@ -59,7 +59,7 @@ SELECT ?z WHERE {
     # x here should be translated to the flow from above, though I think in terms
     # of questions, x would be a flow object, so it's referenced as one here.
         ?xFlow b:outputOf ?yActivity; 
-               b:determiningFlow ?yActivity; 
+               ^b:determiningFlow ?yActivity; #made a mistake in domain and ranges so put an inverse ^ here.
                b:objectType ?xObject;
                
     #last two lines are for the labels which are presumed to used in the question
@@ -78,23 +78,68 @@ __03 What is the amount of flow $x$ emitted as output during the time period $y$
 I think $y$ here would be expressed as a lower $low$ bound and an upper $up$ bound. What do we do if we don’t have the actual data but we have to aggregate data in the database?
 
 What is the amount of CO2 emitted as output on 2011?
-Here x is CO2 and y is between January 1, 2011 0:00:00 and December 31, 2011 11:59:59
+Here x is CO2 and y is between January 1, 2011 0:00:00 and December 31, 2011 11:59:59, but we did mention that we have 2011 in our data. So in this case, I assumed that this 2011 is a properly defined time:ProperInterval that is bound as I mentioned earlier. Also, I'll put in a version wherein the proper interval isn't defined as another query.
 
 ```sparql
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX b: <http://ontology.bonsai.uno/core#>
 PREFIX time: <http://www.w3.org/2006/time#>
 
-SELECT ?z ? WHERE {
-    ?xFlow a b:flow; 
-       b:flowOf ?xObject;
-       b:hasTemporalExtent ?y.
+SELECT SUM(?n) ?u WHERE {
+
+    # This set of statements identifies the flow-object that is used for CO2.
     ?xObject a b:flow-object;
        rdfs:label "CO2".
-    ?y time:hasBeginning ?low;
-       time:hasEnd ?up;
-       a time:ProperInterval
+
+    # ?xFlow identifies all the flows that have the ?xObject above, "CO2," as an
+    # b:objectType. Since we want an amount, we want to add any units, ?u, that we
+    # can as well as the value of the flow, ?n. Those that have the same units are
+    # then added together.
+    ?xFlow a b:flow; 
+       b:objectType ?xObject;
+       b:hasUnit ?u;
+       b:hasNumericValue ?n;
+       b:hasTemporalExtent <http://rdf.bonsai.uno/time/2011>;
+       b:outputOf ?a
 }
+
+# group by is to ensure only those that have the same units are added.
+GROUP BY ?u
+```
+
+limits defined
+
+What is the amount of CO2 emitted as output on June 2011?
+
+This should probably be modified to include a range of dates instead of something that fits the interval exactly. So if I'm looking for data on June 2011. I can still pull data that was generated from June 15 - June 20, 2011. Not sure though if the ranges intersect.
+
+```sparql
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX b: <http://ontology.bonsai.uno/core#>
+PREFIX time: <http://www.w3.org/2006/time#>
+
+SELECT SUM(?n) ?u WHERE {
+    
+    ?xObject a b:flow-object;
+       rdfs:label "CO2".
+       
+    ?xFlow a b:flow; 
+       b:objectType ?xObject;
+       b:hasUnit ?u;
+       b:hasNumericValue ?n;
+       b:hasTemporalExtent ?y;
+       b:outputOf ?a.
+    
+    # the only difference between this query and the previous is the use of
+    # the range in time instead of a predefined time as before.
+    ?y time:hasBeginning ?beg;
+       time:hasEnd ?end.
+       
+    ?beg time:inXSDDate "2011-06-01"^^xsd:date.
+    
+    ?end time:inXSDDate "2011-06-30"^^xsd:date
+}
+GROUP BY ?u
 ```
 
 ---
@@ -270,18 +315,26 @@ Other queries
 Conversion (simple multiplication)
 -----
 
-Converts simple units of measure to their SI counterparts. (Only works for length, time (not 1/time), mass, and equivalent basic units - though it might work on energy. Doesn't work for velocity, rates, power density and similar with complicated conversions).
+Converts simple units of measure to their SI counterparts. (Only works for length, time (not 1/time), mass, and equivalent basic units - though it might work on energy. Doesn't work for velocity, rates, power density and similar with complicated conversions). This works with the property factor in the om ontology.
 
 ```sparql
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX om2: <http://www.ontology-of-units-of-measure.org/resource/om-2/>
 
+
 SELECT ((xsd:float(?v)*xsd:float(?f)) as ?result)
 WHERE {
+
+  # What is needed is both the value, ?v, of the flow that is being calculated.
+  # Here ?s is a measure since b:Flow is a subclass of om2:Measure.
+  # We also need the unit so we know if we need to convert.
   ?s a om2:Measure;
      om2:hasUnit ?u;
      om2:hasNumericalValue ?v.
+     
+  # In the om ontology, the units have a conversion factor to SI if necessary.
+  # This is referenced by the data-property om2:hasFactor and is stored in ?f.
   ?u om2:hasFactor ?f
 }
 LIMIT 1000
@@ -291,6 +344,8 @@ Property Path -> Activity Lists
 ----
 
 Property path assumes the same pathway across recursive properties. This is the example for tracing "Coal" and works with the "simple_steel_transport" in the <https://github.com/BONSAMURAIS/BONSAI-ontology-RDF-framework/blob/master/examples/simple_steel_transport.rdf>.
+
+Property paths are defined in <https://www.w3.org/2009/sparql/wiki/Feature:PropertyPaths>.
 
 ```sparql
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
