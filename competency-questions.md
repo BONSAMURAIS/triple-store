@@ -6,14 +6,21 @@ __01 Is the flow $x$ a determining product for the activity $y$__
 
 Since flow here is a product, I translated it into flow-object. Also, I reread and the flow $x$ and the activity $y$ seems to be a constant. In which case this is a true or false statement.
 
+Is the flow of steel a determining product for steel production?
+Here x is "steel" and y is "steel production".
+
 ```sparql
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX b: <http://ontology.bonsai.uno/core#>
 
 SELECT ?z WHERE {
-    bind ( exists{
-        x b:outputOf y;
-        b:determiningFlow y
-    } as ?z)
+    bind ( exists{ #exists checks if the query returns any result
+        ?xFlow b:outputOf ?yActivity; #?xFlow refers to the actual activity since 'x' would be the label used.
+               b:determiningFlow ?yActivity; # y is the activity which is easy enough to identify using regular language
+               b:objectType ?xObject; #x here should be translated to the flow from above, though I think in terms of questions, x would be a flow object, so it's referenced as one here.
+        ?xObject rdfs:label "steel". #last two lines are for the labels which I presume are used in the question
+        ?yActivity rdfs:label "steel production" 
+    } as ?z) #output of exists returned as ?z
 }
 ```
 
@@ -22,14 +29,20 @@ SELECT ?z WHERE {
 
 __02 Is input flow $x$ required for activity $y$?__
  
+ This is the same query as above except that the output has been changed to input.
+ 
 ```sparql
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX b: <http://ontology.bonsai.uno/core#>
 
 SELECT ?z WHERE {
-    bind (exists{
-        x b:inputOf y;
-        b:determiningFlow y
-    } as ?z)
+    bind ( exists{ #exists checks if the query returns any result
+        ?xFlow b:outputOf ?yActivity; #?xFlow refers to the actual activity since 'x' would be the label used.
+               b:determiningFlow ?yActivity; # y is the activity which is easy enough to identify using regular language
+               b:objectType ?xObject; #x here should be translated to the flow from above, though I think in terms of questions, x would be a flow object, so it's referenced as one here.
+        ?xObject rdfs:label "iron". #last two lines are for the labels which I presume are used in the question
+        ?yActivity rdfs:label "steel production" 
+    } as ?z) #output of exists returned as ?z
 }
 ```
 
