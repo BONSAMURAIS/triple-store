@@ -183,7 +183,10 @@ GROUP BY ?u
 
 __12 What is the determining flow of activity A in location L in the time period T under macro-economic scenario S?__
 
-```
+```sparql
+PREFIX b: <http://ontology.bonsai.uno/core#>
+PREFIX time: <http://www.w3.org/2006/time#>
+
 SELECT ?f WHERE {
     ?f b:determiningFlow ?a;
        a b:flow.
