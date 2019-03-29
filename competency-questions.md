@@ -14,13 +14,24 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX b: <http://ontology.bonsai.uno/core#>
 
 SELECT ?z WHERE {
-    bind ( exists{ #exists checks if the query returns any result
-        ?xFlow b:outputOf ?yActivity; #?xFlow refers to the actual activity since 'x' would be the label used.
-               b:determiningFlow ?yActivity; # y is the activity which is easy enough to identify using regular language
-               b:objectType ?xObject; #x here should be translated to the flow from above, though I think in terms of questions, x would be a flow object, so it's referenced as one here.
-        ?xObject rdfs:label "steel". #last two lines are for the labels which I presume are used in the question
-        ?yActivity rdfs:label "steel production" 
-    } as ?z) #output of exists returned as ?z
+
+    # exists checks if the query returns any result
+    bind ( exists{ 
+    
+    # ?xFlow refers to the actual activity since 'x' would be the label used.
+    # y is the activity which is easy enough to identify using regular language
+    # x here should be translated to the flow from above, though I think in terms
+    # of questions, x would be a flow object, so it's referenced as one here.
+        ?xFlow b:outputOf ?yActivity; 
+               b:determiningFlow ?yActivity; 
+               b:objectType ?xObject;
+               
+    #last two lines are for the labels which are presumed to used in the question
+        ?xObject rdfs:label "steel". 
+        ?yActivity rdfs:label "steel production"
+        
+    #output of exists returned as ?z
+    } as ?z) 
 }
 ```
 
@@ -33,18 +44,30 @@ This is the same query as above except that the output has been changed to input
  
 Is the flow of steel a determining product for steel production?
 Here x is "iron" and y is "steel production".
+
 ```sparql
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX b: <http://ontology.bonsai.uno/core#>
 
 SELECT ?z WHERE {
-    bind ( exists{ #exists checks if the query returns any result
-        ?xFlow b:outputOf ?yActivity; #?xFlow refers to the actual activity since 'x' would be the label used.
-               b:determiningFlow ?yActivity; # y is the activity which is easy enough to identify using regular language
-               b:objectType ?xObject; #x here should be translated to the flow from above, though I think in terms of questions, x would be a flow object, so it's referenced as one here.
-        ?xObject rdfs:label "iron". #last two lines are for the labels which I presume are used in the question
-        ?yActivity rdfs:label "steel production" 
-    } as ?z) #output of exists returned as ?z
+
+    # exists checks if the query returns any result
+    bind ( exists{ 
+    
+    # ?xFlow refers to the actual activity since 'x' would be the label used.
+    # y is the activity which is easy enough to identify using regular language
+    # x here should be translated to the flow from above, though I think in terms
+    # of questions, x would be a flow object, so it's referenced as one here.
+        ?xFlow b:outputOf ?yActivity; 
+               b:determiningFlow ?yActivity; 
+               b:objectType ?xObject;
+               
+    #last two lines are for the labels which are presumed to used in the question
+        ?xObject rdfs:label "iron". 
+        ?yActivity rdfs:label "steel production"
+        
+    #output of exists returned as ?z
+    } as ?z) 
 }
 ```
 
@@ -156,7 +179,7 @@ PREFIX b: <http://ontology.bonsai.uno/core#>
 PREFIX om: <http://www.ontology-of-units-of-measure.org/resource/om-2/>
 PREFIX time: <http://www.w3.org/2006/time#>
 
-SELECT sum(?v) WHERE {
+SELECT sum(?v) ?u WHERE {
     ?i a flow;
        om:hasValue ?v;
        b:objectType ?f;
@@ -274,22 +297,29 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 prefix bont: <http://ontology.bonsai.uno/core#>
 
-SELECT ?alabel
-WHERE {
+# Output is a series of labels of agents that is in the activity train of "Coal".
+SELECT ?alabel WHERE {
+
+  # from activity ?a1, it checks all flows that are the output of an activity which is also an 
+  # input to another activity, the other activity is stored in ?a2. It then checks ?a2 for
+  # outputs that are also inputs of other activities. This works by the * operating on both the
+  # properties ^bont:outputOf and bont:inputOf in order.
+  # ^bont:outputOf is the inverse property of bont:outputOf (inversion of domain and range)
   ?a1 (^bont:outputOf/bont:inputOf)* ?a2.
-  #from activity ?a1, it checks all flows that are the output of an activity which is also an 
-  #input to another activity, the other activity is stored in ?a2. It then checks ?a2 for
-  #outputs that are also inputs of other activities. This works by the * operating on both the
-  #properties ^bont:outputOf and bont:inputOf in order.
-  #^bont:outputOf is the inverse property of bont:outputOf (inversion of domain and range)
-  ?flow2 a bont:Flow; #This set of lines is to get the flow-object of the output of ?a1
+  
+  # This set of lines is to get the flow-object of the output of ?a1 by passing first identifying
+  # the flow of ?a1 and then the ?outputObject.
+  ?flow2 a bont:Flow; 
          bont:objectType ?outputObject;
          bont:outputOf ?a1.
-  #The previous set was used to restrict the flow-object being monitored to the flow-object
-  #that has a label "Coal". This is done in the next set of lines.
+         
+  # The flow-object being monitored that has a label "Coal" is then isolated. This is done in the
+  # next set of lines.
   ?outputObject a bont:FlowObject;
                 rdfs:label "Coal".
-  ?agent bont:performs ?a2; #Checks the labels of the agents that perform the activity ?a2, this includes ?a1
+                
+  #Checks the labels of the agents that perform the activity ?a2, this includes ?a1              
+  ?agent bont:performs ?a2; 
          rdfs:label ?alabel.
 }
 LIMIT 500
