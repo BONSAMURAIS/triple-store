@@ -201,14 +201,26 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX b: <http://ontology.bonsai.uno/core#>
 
 SELECT ?ylabel WHERE {
+
+    # this set of lines look for the agent that is named Generic Power Corporation. It
+    # also gets the location, ?l, of the agent, as well as the activity, ?w. These are
+    # used to get similar agents.
     ?z a b:agent;
       b:performs ?w;
       b:location ?l;
       rdfs:label "Generic Power Corporation".
+    
+    # Here, we ensure that the activity that the agent ?z is involved in is "Electricity
+    # generation.
     ?w rdfs:label "Electricity Generation".
+    
+    # Then we get the labels, ?ylabel, of all agents that are similar to agent ?z.
     ?y b:performs ?w;
        b:location ?l;
        rdfs:label ?ylabel;
+    
+    # We have to remove the label of the Generic Power Corporation since it also satisfies
+    # the conditions for ?y.
     MINUS { "Generic Power Corporation" }
 }
 ```
@@ -220,15 +232,24 @@ __06 How are the flow objects quantified? / Which units of measure are used?__
 How are all the products quantified?
 
 ```sparql
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX b: <http://ontology.bonsai.uno/core#>
 PREFIX om: <http://www.ontology-of-units-of-measure.org/resource/om-2/>
 
-SELECT ?xlabel ?unit WHERE {
-    ?x a b:flowObject;
+SELECT ?xlabel ?unitlabel WHERE {
+
+    # We first get labels of all flow-objects.
+    ?x a b:FlowObject;
        rdfs:label ?xlabel.
-    ?z a b:flow;
+       
+    # We then get all the flows that are of the flow-objects we generated.
+    # We then check what units are used in these flows
+    ?z a b:Flow;
        b:objectType ?x;
-       om:hasUnit ?unit
+       om:hasUnit ?unit.
+       
+    # We check the labels of these units as these make more sense semantically.
+    ?unit rdfs:label ?unitlabel
 }
 ```
 
@@ -258,26 +279,43 @@ Are we still handling stocks? Not sure how to query this as stocks was mentioned
 
 __10 What is the direct input flow of flow-object F to activity A measured by flow-property P in location L in the time period T under macro-economic scenario S?__
  
-I think flow-property here is redundant since we already standardized the units. So I’m removing it from the query itself. Still need to consider convertion. Don't know how to ask the about the macro-economic scenario though.
+I think flow-property here is redundant since we already standardized the units. So I’m removing it from the query itself. Still need to consider convertion. Don't know how to ask the about the macro-economic scenario though. Since we're looking for direct input flow here, I'm assuming it's a rate. I may be wrong. I'm also seeing a problem with the current ontology with regards to activities. But perhaps similar activities can be labeled the same just performed by different agents.
+
+What is the direct input flow of "Natural Gas" to "Heat Production" in "Location A" on 2011?
+
+I used 2011 since we already have that. I put Location A as I don't want to offend anyone by being biased on location. :P // bad documentation.
 
 ```sparql
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX b: <http://ontology.bonsai.uno/core#>
 PREFIX om: <http://www.ontology-of-units-of-measure.org/resource/om-2/>
 PREFIX time: <http://www.w3.org/2006/time#>
 
 SELECT sum(?v) ?u WHERE {
+
+    # We look for the flow-object, ?f, labeled "Natural Gas"
+    ?f rdfs:label "Natural Gas"
+
+    # The look for the flows that use the flow-object above.
+    # This includes checking which activities, ?a it is an input of.
     ?i a flow;
        om:hasValue ?v;
        b:objectType ?f;
        b:inputOf ?a;
        om:hasUnit ?u.
+       
+    # We check that the activity is "Heat Production", what its location, ?l, is,
+    # and when it happened - 2011 in this case.
     ?a a activity;
-       b:location l;
-       b:hasTemporalExtent ?t.
-    ?t a time:ProperInterval;
-       time:hasBeginning low;
-       time:hasEnd up
+       b:location ?l;
+       b:hasTemporalExtent <http://rdf.bonsai.uno/time/2011>;
+       rdfs:label "Heat Production"
+    
+    # We ensure the activity happens in "Location A"
+    ?l rdfs:label "Location A"
 }
+
+# We sum all flows depending on the units
 GROUP BY ?u
 ```
 
@@ -287,24 +325,39 @@ __11 What is the direct output flow of flow-object F from activity A measured by
  
 Same comments as above. Also similar query with only the input changed to the output.
 
+What is the direct output flow of "CO2" to "Heat Production" in "Location A" on 2011?
+
 ```sparql
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX b: <http://ontology.bonsai.uno/core#>
 PREFIX om: <http://www.ontology-of-units-of-measure.org/resource/om-2/>
 PREFIX time: <http://www.w3.org/2006/time#>
 
-SELECT sum(?v) WHERE {
+SELECT sum(?v) ?u WHERE {
+
+    # We look for the flow-object, ?f, labeled "CO2"
+    ?f rdfs:label "CO2"
+
+    # The look for the flows that use the flow-object above.
+    # This includes checking which activities, ?a it is an input of.
     ?i a flow;
        om:hasValue ?v;
        b:objectType ?f;
        b:outputOf ?a;
        om:hasUnit ?u.
+       
+    # We check that the activity is "Heat Production", what its location, ?l, is,
+    # and when it happened - 2011 in this case.
     ?a a activity;
-       b:location l;
-       b:hasTemporalExtent ?t.
-    ?t a time:ProperInterval;
-       time:hasBeginning low;
-       time:hasEnd up
+       b:location ?l;
+       b:hasTemporalExtent <http://rdf.bonsai.uno/time/2011>;
+       rdfs:label "Heat Production"
+    
+    # We ensure the activity happens in "Location A"
+    ?l rdfs:label "Location A"
 }
+
+# We sum all flows depending on the units
 GROUP BY ?u
 ```
 
@@ -312,19 +365,31 @@ GROUP BY ?u
 
 __12 What is the determining flow of activity A in location L in the time period T under macro-economic scenario S?__
 
+What is the determining flow of "Water Desalination" in "Location B" in 2011?
+
 ```sparql
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX b: <http://ontology.bonsai.uno/core#>
 PREFIX time: <http://www.w3.org/2006/time#>
 
-SELECT ?f WHERE {
+SELECT ?flabel WHERE {
+
+    # Ensure that the flow, ?f, is a determining flow of an activity, ?a.
+    # Get the flow-object, ?fobject, of the flow.
     ?f b:determiningFlow ?a;
-       a b:flow.
+       a b:flow;
+       b:objectType ?fobject.
+       
+    # Get the label of flow object to identify what the object is called.
+    ?fobject rdfs:label ?flabel.
+    
+    # Ensure that the activity happens on location, ?l on 2011.
     ?a a b:activity;
-       b:location l;
-       b:hasTemporalExtent ?t.
-    ?t a time:ProperInterval;
-       time:hasBeginning low;
-       time:hasEnd up
+       b:location ?l;
+       b:hasTemporalExtent <http://rdf.bonsai.uno/time/2011>
+       
+    # Ensure that the location is "Location B".
+    ?l rdfs:label "Location B"
 }
 ```
 
