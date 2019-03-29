@@ -120,10 +120,10 @@ PREFIX time: <http://www.w3.org/2006/time#>
 
 SELECT SUM(?n) ?u WHERE {
     
-    ?xObject a b:flow-object;
+    ?xObject a b:FlowObject;
        rdfs:label "CO2".
        
-    ?xFlow a b:flow; 
+    ?xFlow a b:Flow; 
        b:objectType ?xObject;
        b:hasUnit ?u;
        b:hasNumericValue ?n;
