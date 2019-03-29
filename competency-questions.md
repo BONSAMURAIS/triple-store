@@ -7,6 +7,7 @@ __01 Is the flow $x$ a determining product for the activity $y$__
 Since flow here is a product, I translated it into flow-object. Also, I reread and the flow $x$ and the activity $y$ seems to be a constant. In which case this is a true or false statement.
 
 Is the flow of steel a determining product for steel production?
+
 Here x is "steel" and y is "steel production".
 
 ```sparql
@@ -43,6 +44,7 @@ __02 Is input flow $x$ required for activity $y$?__
 This is the same query as above except that the output has been changed to input. To make the query reasonable, I changed the values of x and y.
  
 Is the flow of steel a determining product for steel production?
+
 Here x is "iron" and y is "steel production".
 
 ```sparql
@@ -78,6 +80,7 @@ __03 What is the amount of flow $x$ emitted as output during the time period $y$
 I think $y$ here would be expressed as a lower $low$ bound and an upper $up$ bound. What do we do if we don’t have the actual data but we have to aggregate data in the database?
 
 What is the amount of CO2 emitted as output on 2011?
+
 Here x is CO2 and y is between January 1, 2011 0:00:00 and December 31, 2011 11:59:59, but we did mention that we have 2011 in our data. So in this case, I assumed that this 2011 is a properly defined time:ProperInterval that is bound as I mentioned earlier. Also, I'll put in a version wherein the proper interval isn't defined as another query.
 
 ```sparql
@@ -146,13 +149,42 @@ GROUP BY ?u
 
 __04 What is the location of the agent performing the activity $y$?__
 
+What is the location of "Coal Mining Company" performing the Coal Mining.
+
+
 ```sparql
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX b: <http://ontology.bonsai.uno/core#>
 
-SELECT ?a ?loc WHERE {
-    ?a b:performs y;
+SELECT ?loc WHERE {
+
+    # here we look for an agent which we know the name of and it performs a certain activity.
+    # we then search for where the location of this agent.
+    ?a b:performs ?y;
        a agent;
-       b:location ?loc
+       b:location ?loc;
+       rdfs:label "Coal Mining Company".
+    ?y rdfs:label "Coal Mining"
+}
+```
+
+What is the location of the companies performing the Coal Mining?
+
+Here the query is more generic question when we only know the activity.
+
+```sparql
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX b: <http://ontology.bonsai.uno/core#>
+
+SELECT ?alabel ?loc WHERE {
+
+    # here we look for all agents that performs Coal Mining and output they're
+    # names, ?alabel, and locations, ?loc.
+    ?a b:performs ?y;
+       a agent;
+       b:location ?loc;
+       rdfs:label ?alabel.
+    ?y rdfs:label "Coal Mining"
 }
 ```
 
@@ -162,16 +194,22 @@ __05 What other agents performing the same type of activity of agent $z$ are pre
  
 The other agents I called $a$ and here z is a constant instead of a variable in sparql so I’ll leave it as a z. I also removed z from the result set since this is a given.
 
+Who/What else are performing "Electricity Generation" that is in the same location as "Generic Power Corporation".
+
 ```sparql
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX b: <http://ontology.bonsai.uno/core#>
 
-SELECT ?a WHERE {
-    z a b:agent;
+SELECT ?ylabel WHERE {
+    ?z a b:agent;
       b:performs ?w;
-      b:location ?l.
+      b:location ?l;
+      rdfs:label "Generic Power Corporation".
+    ?w rdfs:label "Electricity Generation".
     ?y b:performs ?w;
-       b:location ?l.
-    MINUS { z }
+       b:location ?l;
+       rdfs:label ?ylabel;
+    MINUS { "Generic Power Corporation" }
 }
 ```
 
@@ -179,12 +217,15 @@ SELECT ?a WHERE {
  
 __06 How are the flow objects quantified? / Which units of measure are used?__
 
+How are all the products quantified?
+
 ```sparql
 PREFIX b: <http://ontology.bonsai.uno/core#>
 PREFIX om: <http://www.ontology-of-units-of-measure.org/resource/om-2/>
 
-SELECT ?x ?unit WHERE {
-    ?x a b:flowObject.
+SELECT ?xlabel ?unit WHERE {
+    ?x a b:flowObject;
+       rdfs:label ?xlabel.
     ?z a b:flow;
        b:objectType ?x;
        om:hasUnit ?unit
