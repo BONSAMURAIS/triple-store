@@ -486,3 +486,21 @@ SELECT ?alabel WHERE {
 LIMIT 500
 ```
 
+# Queries from Python
+SparQLWrapper can be used to that effect.
+
+For example, if one wishes to obtain a dictionnary with activities' uri as keys and labels as values:
+
+        from SPARQLWrapper import SPARQLWrapper, JSON
+
+        sparql = SPARQLWrapper("https://db.bonsai.uno/bonsai/query")
+        sparql.setQuery("""
+                PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+                SELECT DISTINCT ?s  ?lbl WHERE {  ?s a <http://ontology.bonsai.uno/core#ActivityType>; rdfs:label ?lbl }
+        """)
+        sparql.setReturnFormat(JSON)
+        results = sparql.query().convert()
+
+        response_dict={}
+        for result in results["results"]["bindings"]:
+            response_dict[result["s"]["value"]] = result["lbl"]["value"]
