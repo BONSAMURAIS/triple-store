@@ -12,10 +12,15 @@ Here x is "steel" and y is "steel production".
 
 ```sparql
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX b: <http://ontology.bonsai.uno/core#>
+PREFIX bont: <http://ontology.bonsai.uno/core#>
 
-SELECT ?z WHERE {
-
+SELECT ?z 
+FROM <http://rdf.bonsai.uno/data/exiobase3_3_17/hsup>
+FROM <http://rdf.bonsai.uno/data/exiobase3_3_17/huse>
+FROM <http://rdf.bonsai.uno/activitytype/exiobase3_3_17>
+FROM <http://rdf.bonsai.uno/flowobject/exiobase3_3_17>
+FROM <http://rdf.bonsai.uno/activity/exiobase3_3_17>
+WHERE {
     # exists checks if the query returns any result
     bind ( exists{ 
     
@@ -23,13 +28,13 @@ SELECT ?z WHERE {
     # y is the activity which is easy enough to identify using regular language
     # x here should be translated to the flow from above, though I think in terms
     # of questions, x would be a flow object, so it's referenced as one here.
-        ?xFlow b:outputOf ?yActivity; 
-               ^b:determiningFlow ?yActivity; #made a mistake in domain and ranges so put an inverse ^ here.
-               b:objectType ?xObject;
+    ?xFlow bont:outputOf ?yActivity ;
+          ^bont:determiningFlow ?yActivity ; #made a mistake in domain and ranges so put an inverse ^ here.
+           bont:objectType ?xObject .
                
     #last two lines are for the labels which are presumed to used in the question
-        ?xObject rdfs:label "steel". 
-        ?yActivity rdfs:label "steel production"
+    ?xObject rdfs:label "Wheat" .
+    ?yActivity bont:activityType / rdfs:label "Cultivation of wheat" .
         
     #output of exists returned as ?z
     } as ?z) 
@@ -49,10 +54,15 @@ Here x is "iron" and y is "steel production".
 
 ```sparql
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX b: <http://ontology.bonsai.uno/core#>
+PREFIX bont: <http://ontology.bonsai.uno/core#>
 
-SELECT ?z WHERE {
-
+SELECT ?z 
+FROM <http://rdf.bonsai.uno/data/exiobase3_3_17/hsup>
+FROM <http://rdf.bonsai.uno/data/exiobase3_3_17/huse>
+FROM <http://rdf.bonsai.uno/activitytype/exiobase3_3_17>
+FROM <http://rdf.bonsai.uno/flowobject/exiobase3_3_17>
+FROM <http://rdf.bonsai.uno/activity/exiobase3_3_17>
+WHERE {
     # exists checks if the query returns any result
     bind ( exists{ 
     
@@ -60,19 +70,49 @@ SELECT ?z WHERE {
     # y is the activity which is easy enough to identify using regular language
     # x here should be translated to the flow from above, though I think in terms
     # of questions, x would be a flow object, so it's referenced as one here.
-        ?xFlow b:outputOf ?yActivity; 
-               ^b:determiningFlow ?yActivity; #made a mistake in domain and ranges so put an inverse ^ here.
-               b:objectType ?xObject;
+  ?xFlow bont:inputOf ?yActivity ;
+        ^bont:determiningFlow ?yActivity ; #made a mistake in domain and ranges so put an inverse ^ here.
+         bont:objectType ?xObject .
                
     #last two lines are for the labels which are presumed to used in the question
-        ?xObject rdfs:label "iron". 
-        ?yActivity rdfs:label "steel production"
+    ?xObject rdfs:label "Cattle" . 
+    ?yActivity bont:activityType / rdfs:label "Cattle farming" . 
         
     #output of exists returned as ?z
     } as ?z) 
 }
 ```
+---
+  
+__02Bis list the required input flows for activities $a1$...$ak$ ?__
 
+```sparql
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bont: <http://ontology.bonsai.uno/core#>
+
+SELECT ?activityLabel ?objectLabel
+FROM <http://rdf.bonsai.uno/data/exiobase3_3_17/hsup>
+FROM <http://rdf.bonsai.uno/data/exiobase3_3_17/huse>
+FROM <http://rdf.bonsai.uno/activitytype/exiobase3_3_17>
+FROM <http://rdf.bonsai.uno/flowobject/exiobase3_3_17>
+FROM <http://rdf.bonsai.uno/activity/exiobase3_3_17>
+WHERE {
+		?xFlow bont:inputOf ?yActivity ;
+        ^bont:determiningFlow ?yActivity ; #made a mistake in domain and ranges so put an inverse ^ here.
+         bont:objectType ?xObject .
+               
+    #last two lines are for the labels which are presumed to used in the question
+    ?xObject rdfs:label ?objectLabel . 
+    VALUES ?activityLabel { "Cattle farming" 
+						    						"Recycling of waste and scrap" 
+						    						"Manufacture of ceramic goods" 	
+                            "Petroleum Refinery" 	
+                            "Processed rice"
+                            "Mining of iron ores"} .
+    ?yActivity bont:activityType / rdfs:label ?activityLabel .
+}
+
+```
 ---
   
 __03 What is the amount of flow $x$ emitted as output during the time period $y$ ?__
@@ -83,31 +123,40 @@ What is the amount of CO2 emitted as output on 2011?
 
 Here x is CO2 and y is between January 1, 2011 0:00:00 and December 31, 2011 11:59:59, but we did mention that we have 2011 in our data. So in this case, I assumed that this 2011 is a properly defined time:ProperInterval that is bound as I mentioned earlier. Also, I'll put in a version wherein the proper interval isn't defined as another query.
 
+
 ```sparql
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX b: <http://ontology.bonsai.uno/core#>
-PREFIX time: <http://www.w3.org/2006/time#>
+PREFIX bont: <http://ontology.bonsai.uno/core#>
+PREFIX om2: <http://www.ontology-of-units-of-measure.org/resource/om-2/>
 
-SELECT SUM(?n) ?u WHERE {
+SELECT DISTINCT (SUM(?n) as ?summ) ?u
+FROM <http://rdf.bonsai.uno/data/exiobase3_3_17/hsup>
+FROM <http://rdf.bonsai.uno/data/exiobase3_3_17/huse>
+FROM <http://rdf.bonsai.uno/activity/exiobase3_3_17>
+FROM <http://rdf.bonsai.uno/activitytype/exiobase3_3_17>
+FROM <http://rdf.bonsai.uno/flowobject/exiobase3_3_17>
+FROM <http://rdf.bonsai.uno/time>
+FROM <http://rdf.bonsai.uno/unit>
 
+WHERE {
     # This set of statements identifies the flow-object that is used for CO2.
-    ?xObject a b:flow-object;
-       rdfs:label "CO2".
+    ?xObject a bont:FlowObject;
+       rdfs:label "Paddy rice".
 
     # ?xFlow identifies all the flows that have the ?xObject above, "CO2," as an
     # b:objectType. Since we want an amount, we want to add any units, ?u, that we
     # can as well as the value of the flow, ?n. Those that have the same units are
     # then added together.
-    ?xFlow a b:flow; 
-       b:objectType ?xObject;
-       b:hasUnit ?u;
-       b:hasNumericValue ?n;
-       b:hasTemporalExtent <http://rdf.bonsai.uno/time/2011>;
-       b:outputOf ?a
+    ?xFlow a bont:Flow ; 
+       bont:objectType ?xObject ;
+       om2:hasUnit ?u ;
+       om2:hasNumericValue ?n ;
+       bont:outputOf ?a .
+  
+  	?a bont:hasTemporalExtent <http://rdf.bonsai.uno/time#2011> ;
 }
 
-# group by is to ensure only those that have the same units are added.
-GROUP BY ?u
+GROUP by ?u ?foLabel
 ```
 
 limits defined
@@ -154,18 +203,25 @@ What is the location of "Coal Mining Company" performing the Coal Mining.
 
 ```sparql
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX b: <http://ontology.bonsai.uno/core#>
+PREFIX bont: <http://ontology.bonsai.uno/core#>
 
-SELECT ?loc WHERE {
+SELECT ?a 
+FROM <http://rdf.bonsai.uno/data/exiobase3_3_17/hsup>
+FROM <http://rdf.bonsai.uno/data/exiobase3_3_17/huse>
+FROM <http://rdf.bonsai.uno/data/exiobase3_3_17/hsup>
+FROM <http://rdf.bonsai.uno/activity/exiobase3_3_17>
+FROM <http://rdf.bonsai.uno/activitytype/exiobase3_3_17>
+FROM <http://rdf.bonsai.uno/flowobject/exiobase3_3_17>
+
+WHERE {
 
     # here we look for an agent which we know the name of and it performs a certain activity.
     # we then search for where the location of this agent.
-    ?a b:performs ?y;
-       a agent;
-       b:location ?loc;
-       rdfs:label "Coal Mining Company".
+    ?a bont:performs ?y ;
+       a bont:Agent ;
+       bont:location ?loc;
+       rdfs:label "Coal Mining Company" .
     ?y rdfs:label "Coal Mining"
-}
 ```
 
 What is the location of the companies performing the Coal Mining?
@@ -225,6 +281,33 @@ SELECT ?ylabel WHERE {
 }
 ```
 
+__05Bis In which other locations have been performed the same type of activities performed in location $z$__ 
+```sparql
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bons: <http://ontology.bonsai.uno/core#>
+PREFIX schema: <http://schema.org/>
+
+SELECT ?location ?actLabel
+FROM <http://rdf.bonsai.uno/data/exiobase3_3_17/huse>
+FROM <http://rdf.bonsai.uno/data/exiobase3_3_17/hsup>
+FROM <http://rdf.bonsai.uno/activity/exiobase3_3_17>
+FROM <http://rdf.bonsai.uno/location/exiobase3_3_17>
+FROM <http://rdf.bonsai.uno/activitytype/exiobase3_3_17>
+FROM <http://rdf.bonsai.uno/flowobject/exiobase3_3_17>
+WHERE {
+    # here we look for an agent which we know the name of and it performs a certain activity.
+    # we then search for where the location of this agent.
+    ?location a schema:Place ;
+       rdfs:label ?label .
+	
+    ?act a bons:Activity ;
+       bons:activityType ?actType ;
+       bons:location ?location .
+  
+  	?actType rdfs:label ?actLabel .
+}
+GROUP BY ?location ?actLabel
+```
 ---
  
 __06 How are the flow objects quantified? / Which units of measure are used?__
@@ -233,20 +316,27 @@ How are all the products quantified?
 
 ```sparql
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX b: <http://ontology.bonsai.uno/core#>
-PREFIX om: <http://www.ontology-of-units-of-measure.org/resource/om-2/>
+PREFIX bont: <http://ontology.bonsai.uno/core#>
+PREFIX om2: <http://www.ontology-of-units-of-measure.org/resource/om-2/>
 
-SELECT ?xlabel ?unitlabel WHERE {
-
+SELECT DISTINCT ?xlabel ?unitlabel
+FROM <http://rdf.bonsai.uno/data/exiobase3_3_17/hsup>
+FROM <http://rdf.bonsai.uno/data/exiobase3_3_17/huse>
+FROM <http://rdf.bonsai.uno/data/exiobase3_3_17/hsup>
+FROM <http://rdf.bonsai.uno/activity/exiobase3_3_17>
+FROM <http://rdf.bonsai.uno/activitytype/exiobase3_3_17>
+FROM <http://rdf.bonsai.uno/flowobject/exiobase3_3_17>
+FROM <http://rdf.bonsai.uno/unit>
+WHERE {
     # We first get labels of all flow-objects.
-    ?x a b:FlowObject;
+    ?x a bont:FlowObject;
        rdfs:label ?xlabel.
        
     # We then get all the flows that are of the flow-objects we generated.
     # We then check what units are used in these flows
-    ?z a b:Flow;
-       b:objectType ?x;
-       om:hasUnit ?unit.
+    ?z a bont:Flow;
+       bont:objectType ?x;
+       om2:hasUnit ?unit.
        
     # We check the labels of these units as these make more sense semantically.
     ?unit rdfs:label ?unitlabel
@@ -261,6 +351,82 @@ I’m assuming this flow objects mass balance is from flows. Also, this only wor
 
 ```
 TBD
+```
+
+---
+
+__07bis Which flow object are overbalanced when comparing sum of produced and sum of consumed (more output than input)__
+
+```sparql
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bont: <http://ontology.bonsai.uno/core#>
+PREFIX om2: <http://www.ontology-of-units-of-measure.org/resource/om-2/>
+
+SELECT ?floObj ?sumOutput ?sumInput
+FROM <http://rdf.bonsai.uno/data/exiobase3_3_17/huse>
+FROM <http://rdf.bonsai.uno/data/exiobase3_3_17/hsup>
+FROM <http://rdf.bonsai.uno/activity/exiobase3_3_17>
+FROM <http://rdf.bonsai.uno/activitytype/exiobase3_3_17>
+FROM <http://rdf.bonsai.uno/flowobject/exiobase3_3_17>
+FROM <http://rdf.bonsai.uno/unit>
+WHERE {
+  {
+    SELECT ?floObj (SUM(?numericValueOutput) as ?sumOutput) {
+	  ?flowOut bont:objectType ?floObj ;
+	  	bont:outputOf ?aO .
+	  ?flowOut om2:hasNumericValue ?numericValueOutput .
+    } GROUP BY ?floObj
+  }
+
+  {
+    SELECT ?floObj (SUM(?numericValueInput) as ?sumInput) {
+	  ?flowIn bont:objectType ?floObj ;
+	  	bont:inputOf ?aI .
+	  ?flowIn om2:hasNumericValue ?numericValueInput .
+    } GROUP BY ?floObj
+  }
+  
+  FILTER (?sumOutput > ?sumInput)
+}
+GROUP BY ?floObj ?sumInput ?sumOutput
+```
+
+---
+
+__07bis2: Which flow object are overbalanced when comparing sum of produced and sum of consumed (more input than output)__
+
+```sparql
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX bont: <http://ontology.bonsai.uno/core#>
+PREFIX om2: <http://www.ontology-of-units-of-measure.org/resource/om-2/>
+
+SELECT ?floObj ?sumOutput ?sumInput
+FROM <http://rdf.bonsai.uno/data/exiobase3_3_17/huse>
+FROM <http://rdf.bonsai.uno/data/exiobase3_3_17/hsup>
+FROM <http://rdf.bonsai.uno/activity/exiobase3_3_17>
+FROM <http://rdf.bonsai.uno/activitytype/exiobase3_3_17>
+FROM <http://rdf.bonsai.uno/flowobject/exiobase3_3_17>
+FROM <http://rdf.bonsai.uno/unit>
+WHERE {
+  {
+    SELECT ?floObj (SUM(?numericValueOutput) as ?sumOutput) {
+	  ?flowOut bont:objectType ?floObj ;
+	  	bont:outputOf ?aO .
+	  ?flowOut om2:hasNumericValue ?numericValueOutput .
+    } GROUP BY ?floObj
+  }
+
+  {
+    SELECT ?floObj (SUM(?numericValueInput) as ?sumInput) {
+	  ?flowIn bont:objectType ?floObj ;
+	  	bont:inputOf ?aI .
+	  ?flowIn om2:hasNumericValue ?numericValueInput .
+    } GROUP BY ?floObj
+  }
+  
+  FILTER (?sumInput > ?sumOutput)
+}
+GROUP BY ?floObj ?sumInput ?sumOutput
 ```
 
 ---
@@ -287,32 +453,41 @@ I used 2011 since we already have that. I put Location A as I don't want to offe
 
 ```sparql
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX b: <http://ontology.bonsai.uno/core#>
+PREFIX bons: <http://ontology.bonsai.uno/core#>
 PREFIX om: <http://www.ontology-of-units-of-measure.org/resource/om-2/>
 PREFIX time: <http://www.w3.org/2006/time#>
 
-SELECT sum(?v) ?u WHERE {
+SELECT (sum(?v) as ?summ) ?u
+
+FROM <http://rdf.bonsai.uno/data/exiobase3_3_17/hsup>
+FROM <http://rdf.bonsai.uno/data/exiobase3_3_17/huse>
+FROM <http://rdf.bonsai.uno/activity/exiobase3_3_17>
+FROM <http://rdf.bonsai.uno/activitytype/exiobase3_3_17>
+FROM <http://rdf.bonsai.uno/flowobject/exiobase3_3_17>
+FROM <http://rdf.bonsai.uno/flowobject/exiobase3_3_17>
+FROM <http://rdf.bonsai.uno/location/exiobase3_3_17>
+WHERE {
 
     # We look for the flow-object, ?f, labeled "Natural Gas"
-    ?f rdfs:label "Natural Gas"
+    ?flowObject rdfs:label "Chemicals nec" .
 
     # The look for the flows that use the flow-object above.
     # This includes checking which activities, ?a it is an input of.
-    ?i a flow;
-       om:hasValue ?v;
-       b:objectType ?f;
-       b:inputOf ?a;
-       om:hasUnit ?u.
+    ?flow a bons:Flow ;
+       om:hasNumericValue ?v ;
+       bons:objectType ?flowObject ;
+       bons:inputOf ?a ;
+       om:hasUnit ?u .
        
     # We check that the activity is "Heat Production", what its location, ?l, is,
     # and when it happened - 2011 in this case.
-    ?a a activity;
-       b:location ?l;
-       b:hasTemporalExtent <http://rdf.bonsai.uno/time/2011>;
-       rdfs:label "Heat Production"
+    ?a bons:activityType ?at ;
+       bons:location ?l ;
+       bons:hasTemporalExtent <http://rdf.bonsai.uno/time#2011> .
+    ?at rdfs:label "Manufacture of fish products" .
     
-    # We ensure the activity happens in "Location A"
-    ?l rdfs:label "Location A"
+    # We ensure the activity happens in Denmark
+    ?l rdfs:label "DK"
 }
 
 # We sum all flows depending on the units
@@ -329,32 +504,41 @@ What is the direct output flow of "CO2" to "Heat Production" in "Location A" on 
 
 ```sparql
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX b: <http://ontology.bonsai.uno/core#>
+PREFIX bons: <http://ontology.bonsai.uno/core#>
 PREFIX om: <http://www.ontology-of-units-of-measure.org/resource/om-2/>
 PREFIX time: <http://www.w3.org/2006/time#>
 
-SELECT sum(?v) ?u WHERE {
+SELECT (sum(?v) as ?summ) ?u
 
-    # We look for the flow-object, ?f, labeled "CO2"
-    ?f rdfs:label "CO2"
+FROM <http://rdf.bonsai.uno/data/exiobase3_3_17/hsup>
+FROM <http://rdf.bonsai.uno/data/exiobase3_3_17/huse>
+FROM <http://rdf.bonsai.uno/activity/exiobase3_3_17>
+FROM <http://rdf.bonsai.uno/activitytype/exiobase3_3_17>
+FROM <http://rdf.bonsai.uno/flowobject/exiobase3_3_17>
+FROM <http://rdf.bonsai.uno/flowobject/exiobase3_3_17>
+FROM <http://rdf.bonsai.uno/location/exiobase3_3_17>
+WHERE {
+
+    # We look for the flow-object, ?f, labeled "Natural Gas"
+    ?flowObject rdfs:label "Electricity by gas" .
 
     # The look for the flows that use the flow-object above.
     # This includes checking which activities, ?a it is an input of.
-    ?i a flow;
-       om:hasValue ?v;
-       b:objectType ?f;
-       b:outputOf ?a;
-       om:hasUnit ?u.
+    ?flow a bons:Flow ;
+       om:hasNumericValue ?v ;
+       bons:objectType ?flowObject ;
+       bons:outputOf ?a ;
+       om:hasUnit ?u .
        
-    # We check that the activity is "Heat Production", what its location, ?l, is,
+    # We check that the activity is "Manufacture of fish products", what its location, ?l, is,
     # and when it happened - 2011 in this case.
-    ?a a activity;
-       b:location ?l;
-       b:hasTemporalExtent <http://rdf.bonsai.uno/time/2011>;
-       rdfs:label "Heat Production"
+    ?a bons:activityType ?at ;
+       bons:location ?l ;
+       bons:hasTemporalExtent ?timeLabel .
+    ?at rdfs:label "Production of electricity by gas" .
     
-    # We ensure the activity happens in "Location A"
-    ?l rdfs:label "Location A"
+    # We ensure the activity happens in Canada
+    ?l rdfs:label "CA"
 }
 
 # We sum all flows depending on the units
@@ -368,28 +552,32 @@ __12 What is the determining flow of activity A in location L in the time period
 What is the determining flow of "Water Desalination" in "Location B" in 2011?
 
 ```sparql
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX b: <http://ontology.bonsai.uno/core#>
-PREFIX time: <http://www.w3.org/2006/time#>
+SELECT ?flabel
 
-SELECT ?flabel WHERE {
-
+FROM <http://rdf.bonsai.uno/data/exiobase3_3_17/hsup>
+FROM <http://rdf.bonsai.uno/data/exiobase3_3_17/huse>
+FROM <http://rdf.bonsai.uno/activity/exiobase3_3_17>
+FROM <http://rdf.bonsai.uno/activitytype/exiobase3_3_17>
+FROM <http://rdf.bonsai.uno/flowobject/exiobase3_3_17>
+FROM <http://rdf.bonsai.uno/location/exiobase3_3_17>
+FROM <http://rdf.bonsai.uno/time>
+WHERE {
     # Ensure that the flow, ?f, is a determining flow of an activity, ?a.
     # Get the flow-object, ?fobject, of the flow.
-    ?f b:determiningFlow ?a;
-       a b:flow;
-       b:objectType ?fobject.
+    ?f a bons:Flow ;
+       bons:objectType ?fobject .
        
     # Get the label of flow object to identify what the object is called.
     ?fobject rdfs:label ?flabel.
     
-    # Ensure that the activity happens on location, ?l on 2011.
-    ?a a b:activity;
-       b:location ?l;
-       b:hasTemporalExtent <http://rdf.bonsai.uno/time/2011>
+    # Ensure that the activity happens on location, ?l on 2011.  
+  ?a a bons:Activity ;
+       bons:determiningFlow ?f ;
+       bons:location ?l ;
+       bons:hasTemporalExtent <http://rdf.bonsai.uno/time#2011> .
        
     # Ensure that the location is "Location B".
-    ?l rdfs:label "Location B"
+    ?l rdfs:label ?lLabel
 }
 ```
 
